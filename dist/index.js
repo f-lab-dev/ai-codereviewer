@@ -112,7 +112,7 @@ function createPrompt(file, chunk, prDetails) {
 - Provide comments and suggestions ONLY if there is something to improve, otherwise "reviews" should be an empty array.
 - Write the comment in GitHub Markdown format.
 - Use the given description only for the overall context and only comment the code.
-- When you provide a comment, you must explain in detail why.
+- Please explain the reason for the comments and suggestion in as much detail as possible so that the requestor can learn deeply.
 - Comments are provided in Korean.
 - IMPORTANT: NEVER suggest adding comments to the code.
 
