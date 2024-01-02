@@ -85,9 +85,15 @@ function createPrompt(file: File, chunk: Chunk, prDetails: PRDetails): string {
 - Provide comments and suggestions ONLY if there is something to improve, otherwise "reviews" should be an empty array.
 - Write the comment in GitHub Markdown format.
 - Use the given description only for the overall context and only comment the code.
-- When you provide a comment, you must explain in detail why.
+- Comments and suggestions provide only about the quality of the performance and maintenance of the code.
+- Please explain the reason for the comments and suggestion in as much detail as possible so that the requestor can learn deeply.
 - Comments are provided in Korean.
 - IMPORTANT: NEVER suggest adding comments to the code.
+
+Review the following code diff in the file "${file.to}" and take the pull request title and description into account when writing the response.
+  
+Pull request title: ${prDetails.title}
+Pull request description:
 
 Review the following code diff in the file "${
     file.to
@@ -190,7 +196,7 @@ async function main() {
     readFileSync(process.env.GITHUB_EVENT_PATH ?? "", "utf8")
   );
 
-  if (eventData.action === "opened") {
+  if (eventData.action === "opened" || eventData.action === "reopened") {
     diff = await getDiff(
       prDetails.owner,
       prDetails.repo,
