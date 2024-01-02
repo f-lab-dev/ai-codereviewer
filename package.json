@@ -6,9 +6,10 @@
   "author": "Ville Saukkonen",
   "license": "MIT",
   "scripts": {
-    "build": "tsc",
-    "package": "ncc build -m --source-map --license licenses.txt",
-    "uglify": "terser dist/index.js -o dist/index.min.js --compress --mangle-props keep_quoted:strict",
+    "build:tsc": "tsc",
+    "build:package": "ncc build -m --source-map --license licenses.txt",
+    "build:uglify": "terser dist/index.js --compress --mangle-props keep_quoted:strict",
+    "build": "yarn build:tsc && yarn build:package && yarn build:uglify",
     "format": "prettier --write .",
     "lint": "prettier --check ."
   },
