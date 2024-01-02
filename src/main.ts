@@ -88,7 +88,8 @@ function createPrompt(file: File, chunk: Chunk, prDetails: PRDetails): string {
 - Comments and suggestions provide only about the quality of the performance and maintenance of the code.
 - Please explain the reason for the comments and suggestion in as much detail as possible so that the requestor can learn deeply.
 - Do not comment on whether the logic change was intended.
-- Do not provide duplicate reviews
+- If you have a review of a similar subject, please provide it only once
+- Do not provide feedback on naming
 - Comments are provided in Korean.
 - IMPORTANT: NEVER suggest adding comments to the code.
 
