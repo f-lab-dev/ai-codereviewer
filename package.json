@@ -8,7 +8,7 @@
   "scripts": {
     "build": "tsc",
     "package": "ncc build -m --source-map --license licenses.txt",
-    "uglify": "terser -o dist/index.min.js --compress --mangle",
+    "uglify": "terser dist/index.js -o dist/index.min.js --compress --mangle",
     "format": "prettier --write .",
     "lint": "prettier --check ."
   },
