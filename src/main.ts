@@ -8,6 +8,9 @@ import minimatch from "minimatch";
 const GITHUB_TOKEN: string = core.getInput("GITHUB_TOKEN");
 const OPENAI_API_KEY: string = core.getInput("OPENAI_API_KEY");
 const OPENAI_API_MODEL: string = core.getInput("OPENAI_API_MODEL");
+const FLAB_SECRET_KEY: string = core.getInput("FLAB_SECRET_KEY");
+
+const MAX_RETRY_COUNT = 3;
 
 const octokit = new Octokit({ auth: GITHUB_TOKEN });
 
@@ -85,10 +88,8 @@ function createPrompt(file: File, chunk: Chunk, prDetails: PRDetails): string {
 - Provide comments and suggestions ONLY if there is something to improve, otherwise "reviews" should be an empty array.
 - Write the comment in GitHub Markdown format.
 - Use the given description only for the overall context and only comment the code.
-- Comments and suggestions provide only about the quality of the performance and maintenance of the code.
 - Please make comments and suggestions less than 10 in the order of the highest priority.
 - Please explain the reason for the comments and suggestion in as much detail as possible so that the requestor can learn deeply.
-- Do not comment on whether the logic change was intended.
 - If you have a review of a similar subject, please provide it only once
 - Do not provide feedback on naming
 - Comments are provided in Korean.
@@ -244,14 +245,23 @@ async function main() {
     );
   });
 
-  const comments = await analyzeCode(filteredDiff, prDetails);
-  if (comments.length > 0) {
-    await createReviewComment(
-      prDetails.owner,
-      prDetails.repo,
-      prDetails.pull_number,
-      comments
-    );
+  for (let i = 0; i < MAX_RETRY_COUNT; i++) {
+    try {
+      const comments = await analyzeCode(filteredDiff, prDetails);
+      if (comments.length > 0) {
+        await createReviewComment(
+          prDetails.owner,
+          prDetails.repo,
+          prDetails.pull_number,
+          comments
+        );
+      }
+      return;
+    } catch (error) {
+      if (i === MAX_RETRY_COUNT - 1) {
+        throw error;
+      }
+    }
   }
 }
 
