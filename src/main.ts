@@ -87,7 +87,7 @@ function createPrompt(file: File, chunk: Chunk, prDetails: PRDetails): string {
 - Do not give positive comments or compliments.
 - Do not give naming convention comments or compliments.
 - Provide comments and suggestions ONLY if there is something to improve, otherwise "reviews" should be an empty array.
-- Comments and suggestions are provided in 10 pieces or less, and only those that you think are important.
+- Comments and suggestions are provided in 3 pieces or less.
 - Comments and suggestions only provide for performance, maintenance, and best practices.
 - Write the comment in GitHub Markdown format.
 - Use the given description only for the overall context and only comment the code.
