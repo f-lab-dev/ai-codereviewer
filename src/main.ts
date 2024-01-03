@@ -7,7 +7,7 @@ import minimatch from "minimatch";
 
 const GITHUB_TOKEN: string = core.getInput("GITHUB_TOKEN");
 const OPENAI_API_KEY: string = core.getInput("OPENAI_API_KEY");
-const OPENAI_API_MODEL: string = core.getInput("OPENAI_API_MODEL");
+const OPENAI_API_MODEL: string = 'gpt-4'; // TODO : 서버에서 모델 받아오기
 const FLAB_SECRET_KEY: string = core.getInput("FLAB_SECRET_KEY");
 
 const MAX_RETRY_COUNT = 3;
@@ -87,7 +87,7 @@ function createPrompt(file: File, chunk: Chunk, prDetails: PRDetails): string {
 - Do not give positive comments or compliments.
 - Do not give naming convention comments or compliments.
 - Provide comments and suggestions ONLY if there is something to improve, otherwise "reviews" should be an empty array.
-- Comments and suggestions are provided in 3 pieces or less.
+- Provide up to 3 comments per file.
 - Only provide one comment or suggestion on a similar topic.
 - Comments and suggestions only provide for performance, maintenance, and best practices.
 - Write the comment in GitHub Markdown format.
