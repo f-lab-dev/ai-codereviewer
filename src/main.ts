@@ -86,6 +86,7 @@ function createPrompt(file: File, chunk: Chunk, prDetails: PRDetails): string {
 - Write the comment in GitHub Markdown format.
 - Use the given description only for the overall context and only comment the code.
 - Comments and suggestions provide only about the quality of the performance and maintenance of the code.
+- Please make comments and suggestions less than 10 in the order of the highest priority.
 - Please explain the reason for the comments and suggestion in as much detail as possible so that the requestor can learn deeply.
 - Do not comment on whether the logic change was intended.
 - If you have a review of a similar subject, please provide it only once
