@@ -90,6 +90,7 @@ function createPrompt(file: File, chunk: Chunk, prDetails: PRDetails): string {
 - Use the given description only for the overall context and only comment the code.
 - Please make comments and suggestions less than 10 in the order of the highest priority.
 - Please explain the reason for the comments and suggestion in as much detail as possible so that the requestor can learn deeply.
+- Please check carefully if the line number of the comments or suggestions is correct
 - If you have a review of a similar subject, please provide it only once
 - Do not provide feedback on naming
 - Comments are provided in Korean.
