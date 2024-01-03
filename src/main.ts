@@ -82,17 +82,17 @@ async function analyzeCode(
 }
 
 function createPrompt(file: File, chunk: Chunk, prDetails: PRDetails): string {
-  return `Your task is to review pull requests. Instructions:
+  const prompt = `Your task is to review pull requests. Instructions:
 - Provide the response in following JSON format:  {"reviews": [{"lineNumber":  <line_number>, "reviewComment": "<review comment>"}]}
 - Do not give positive comments or compliments.
+- Do not give naming convention comments or compliments.
 - Provide comments and suggestions ONLY if there is something to improve, otherwise "reviews" should be an empty array.
 - Write the comment in GitHub Markdown format.
 - Use the given description only for the overall context and only comment the code.
 - Please make comments and suggestions less than 10 in the order of the highest priority.
 - Please explain the reason for the comments and suggestion in as much detail as possible so that the requestor can learn deeply.
-- Please check carefully if the line number of the comments or suggestions is correct
-- If you have a review of a similar subject, please provide it only once
-- Do not provide feedback on naming
+- Please check carefully if the line number of the comments is correct.
+- If you have a similar comments and suggestions, please provide it only once.
 - Comments are provided in Korean.
 - IMPORTANT: NEVER suggest adding comments to the code.
 
@@ -122,6 +122,9 @@ ${chunk.changes
   .join("\n")}
 \`\`\`
 `;
+
+  console.log(prompt);
+  return prompt;
 }
 
 async function getAIResponse(prompt: string): Promise<Array<{
