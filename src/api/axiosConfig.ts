@@ -1,17 +1,19 @@
 import axios from "axios";
 import dotenv from "dotenv";
 
+dotenv.config();
+
 interface CreateInstanceParams {
-    endpoint: string;
-    headers: Record<string, string>;
+    customKey: string;
 }
 
+const HEADER_KEY = process.env.HEADER_KEY;
 
-export const createInstance = ({endpoint, headers} :CreateInstanceParams)=> {
+export const createInstance = ({ customKey} :CreateInstanceParams)=> {
     return axios.create({
-        baseURL: `${process.env.BASE_API_URL}/${endpoint}`,
+        baseURL: process.env.BASE_API_URL,
         headers: {
-            ...headers
+            [HEADER_KEY as string]: customKey
         }
     })
 }
