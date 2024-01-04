@@ -246,9 +246,10 @@ async function main() {
   }
 
   const HEADER_KEY = process.env.HEADER_KEY;
+  const END_POINT_URL = 'f-lab/prompts/github-code-review'
 
   const apiClient = createInstance({
-    endpoint: 'f-lab/prompts/github-code-review',
+    endpoint: END_POINT_URL,
     headers: {
       [HEADER_KEY as string]: FLAB_SECRET_KEY
     }
