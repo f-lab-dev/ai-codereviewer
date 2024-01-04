@@ -5,6 +5,10 @@ import { Octokit } from "@octokit/rest";
 import parseDiff, { Chunk, File } from "parse-diff";
 import minimatch from "minimatch";
 import { createInstance } from "./api/axiosConfig";
+import dotenv from "dotenv";
+
+dotenv.config();
+
 
 const GITHUB_TOKEN: string = core.getInput("GITHUB_TOKEN");
 const OPENAI_API_KEY: string = core.getInput("OPENAI_API_KEY");
@@ -241,9 +245,13 @@ async function main() {
     return;
   }
 
+  const HEADER_KEY = process.env.HEADER_KEY;
+
   const apiClient = createInstance({
     endpoint: 'f-lab/prompts/github-code-review',
-    customKey: FLAB_SECRET_KEY
+    headers: {
+      [HEADER_KEY as string]: FLAB_SECRET_KEY
+    }
   })
 
   /*

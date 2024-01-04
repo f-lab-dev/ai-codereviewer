@@ -1,19 +1,23 @@
 import axios from "axios";
-require('dotenv').config();
+import dotenv from "dotenv";
 
+dotenv.config();
+
+interface Headers {
+    [key: string]: string;
+}
 
 interface CreateInstanceParams {
     endpoint: string;
-    customKey: string;
+    headers: Headers;
 }
 
-const CUSTOM_HEADER_KEY = 'X-FLAB-INTEGRATION-SECRET-KEY'
 
-export const createInstance = ({endpoint, customKey} :CreateInstanceParams)=> {
+export const createInstance = ({endpoint, headers} :CreateInstanceParams)=> {
     return axios.create({
         baseURL: `${process.env.BASE_API_URL}/${endpoint}`,
         headers: {
-            [CUSTOM_HEADER_KEY]: customKey,
+            ...headers
         }
     })
 }
