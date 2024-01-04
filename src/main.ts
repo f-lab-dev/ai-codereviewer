@@ -4,6 +4,7 @@ import OpenAI from "openai";
 import { Octokit } from "@octokit/rest";
 import parseDiff, { Chunk, File } from "parse-diff";
 import minimatch from "minimatch";
+import { createInstance } from "./api/axiosConfig";
 
 const GITHUB_TOKEN: string = core.getInput("GITHUB_TOKEN");
 const OPENAI_API_KEY: string = core.getInput("OPENAI_API_KEY");
@@ -239,6 +240,11 @@ async function main() {
     console.log("No diff found");
     return;
   }
+
+  const apiClient = createInstance({
+    endpoint: 'f-lab/prompts/github-code-review',
+    customKey: FLAB_SECRET_KEY
+  })
 
   /*
     TODO : 여기서 백엔드 호출해서 데이터 가져오기
