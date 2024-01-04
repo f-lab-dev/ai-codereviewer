@@ -1,15 +1,9 @@
 import axios from "axios";
 import dotenv from "dotenv";
 
-dotenv.config();
-
-interface Headers {
-    [key: string]: string;
-}
-
 interface CreateInstanceParams {
     endpoint: string;
-    headers: Headers;
+    headers: Record<string, string>;
 }
 
 
