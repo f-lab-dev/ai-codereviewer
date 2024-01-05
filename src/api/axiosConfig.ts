@@ -7,7 +7,7 @@ interface CreateInstanceParams {
     customKey: string;
 }
 
-const HEADER_KEY = process.env.HEADER_KEY;
+const HEADER_KEY = process.env.CUSTOM_HEADER_KEY;
 
 if(!HEADER_KEY) {
     throw new Error('Required Key is missing')
