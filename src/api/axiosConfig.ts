@@ -7,10 +7,6 @@ interface CreateInstanceParams {
 const BASE_URL = 'https://api.f-lab.kr'
 const HEADER_KEY = 'X-FLAB-INTEGRATION-SECRET-KEY'
 
-if(!HEADER_KEY) {
-    throw new Error('Required Key is missing')
-}
-
 export const createInstance = ({ customKey} :CreateInstanceParams)=> {
     return axios.create({
         baseURL: BASE_URL,
