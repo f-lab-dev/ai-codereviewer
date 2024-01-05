@@ -88,9 +88,38 @@ async function analyzeCode(
 
 function createPrompt(basePrompt: string, file: File, chunk: Chunk, prDetails: PRDetails): string {
 
-  const updatedPrompt = basePrompt.replace(/#\{(.*?)\}/g, '${$1}');
+  const prompt = `Your task is to review pull requests. Instructions:
+- Provide the response in following JSON format:  {"reviews": [{"lineNumber":  <line_number>, "reviewComment": "<review comment>"}]}
+- THIS IS TEST
+
+Review the following code diff in the file "${file.to}" and take the pull request title and description into account when writing the response.
   
-  return updatedPrompt;
+Pull request title: ${prDetails.title}
+Pull request description:
+
+Review the following code diff in the file "${
+    file.to
+  }" and take the pull request title and description into account when writing the response.
+  
+Pull request title: ${prDetails.title}
+Pull request description:
+
+---
+${prDetails.description}
+---
+
+Git diff to review:
+
+\`\`\`diff
+${chunk.content}
+${chunk.changes
+  // @ts-expect-error - ln and ln2 exists where needed
+  .map((c) => `${c.ln ? c.ln : c.ln2} ${c.content}`)
+  .join("\n")}
+\`\`\`
+`;
+  
+  return prompt;
 }
 
 async function getAIResponse(prompt: string, model: string): Promise<Array<{
