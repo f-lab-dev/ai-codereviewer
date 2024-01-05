@@ -10,7 +10,6 @@ interface Response {
 export const getPrompt = async (apiClient: AxiosInstance): Promise<Response> => {
     try {
         const response = await apiClient.get<Promise<Response>, Promise<Response>>(END_POINT_URL);
-        console.log('fetched')
         return response;
       }
       

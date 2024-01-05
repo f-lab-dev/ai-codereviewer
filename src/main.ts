@@ -89,8 +89,6 @@ async function analyzeCode(
 function createPrompt(basePrompt: string, file: File, chunk: Chunk, prDetails: PRDetails): string {
 
   const updatedPrompt = basePrompt.replace(/#\{(.*?)\}/g, '${$1}');
-
-  console.log(updatedPrompt, '@@updated');
   
   return updatedPrompt;
 }
