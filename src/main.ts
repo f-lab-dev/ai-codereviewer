@@ -9,7 +9,7 @@ import { getPrompt } from "./api/getPrompt";
 
 const GITHUB_TOKEN: string = core.getInput("GITHUB_TOKEN");
 const OPENAI_API_KEY: string = core.getInput("OPENAI_API_KEY");
-const FLAB_SECRET_KEY: string = core.getInput("SECRET_F_LAB_INTEGRATION_KEY");
+const FLAB_SECRET_KEY: string = core.getInput("F_LAB_INTEGRATION_KEY");
 
 const MAX_RETRY_COUNT = 3;
 
@@ -89,7 +89,7 @@ async function analyzeCode(
 function createPrompt(basePrompt: string, file: File, chunk: Chunk, prDetails: PRDetails): string {
 
   const updatedPrompt = basePrompt.replace(/#\{(.*?)\}/g, '${$1}');
-  
+
   return updatedPrompt;
 }
 
@@ -205,7 +205,7 @@ async function main() {
   const apiClient = createInstance({
       customKey: FLAB_SECRET_KEY
      })
-   
+
   const {prompt, model} = await getPrompt(apiClient);
 
   const flabApiResponse = {
