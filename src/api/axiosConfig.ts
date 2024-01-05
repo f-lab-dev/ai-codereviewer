@@ -7,6 +7,8 @@ interface CreateInstanceParams {
     customKey: string;
 }
 
+console.log(process.env)
+
 const HEADER_KEY = process.env.CUSTOM_HEADER_KEY;
 
 if(!HEADER_KEY) {
