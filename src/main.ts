@@ -90,7 +90,7 @@ function createPrompt(basePrompt: string, file: File, chunk: Chunk, prDetails: P
 
   const updatedPrompt = basePrompt.replace(/#\{(.*?)\}/g, '${$1}');
 
-  console.log(updatedPrompt);
+  console.log(updatedPrompt, '@@updated');
   
   return updatedPrompt;
 }
