@@ -2,13 +2,19 @@ import { AxiosInstance } from "axios"
 
 const END_POINT_URL = 'f-lab/prompts/github-code-review'
 
-export const getPrompt = async (apiClient: AxiosInstance) => {
+interface Response {
+    prompt: string;
+    model: string;
+}
+
+export const getPrompt = async (apiClient: AxiosInstance): Promise<Response> => {
     try {
-        const response = await apiClient.get(END_POINT_URL);
-        console.log(response.data);
-        return response.data;
+        const response = await apiClient.get<Promise<Response>, Promise<Response>>(END_POINT_URL);
+        return response;
       }
+      
       catch (error) {
         console.error(error);
+        return Promise.reject(error)
       }
 }

@@ -242,13 +242,6 @@ async function main() {
     return;
   }
 
-
-  const apiClient = createInstance({
-   customKey: FLAB_SECRET_KEY
-  })
-
-  getPrompt(apiClient)
-
   /*
     TODO : 여기서 백엔드 호출해서 데이터 가져오기
 
@@ -260,9 +253,15 @@ async function main() {
 
    */
 
+  const apiClient = createInstance({
+      customKey: FLAB_SECRET_KEY
+     })
+   
+  const {prompt, model} = await getPrompt(apiClient);
+
   const flabApiResponse = {
-    prompt: "prompt",
-    model: "gpt-4"
+    prompt,
+    model
   }
 
   const parsedDiff = parseDiff(diff);
