@@ -87,50 +87,12 @@ async function analyzeCode(
 }
 
 function createPrompt(basePrompt: string, file: File, chunk: Chunk, prDetails: PRDetails): string {
-  // TODO : 서버에서 받아온 프롬프트에 각 값들을 replace 시키기
-  const prompt = `Your task is to review pull requests. Instructions:
-- Provide the response in following JSON format:  {"reviews": [{"lineNumber":  <line_number>, "reviewComment": "<review comment>"}]}
-- Do not give positive comments or compliments.
-- Do not give naming convention comments or compliments.
-- Provide comments and suggestions ONLY if there is something to improve, otherwise "reviews" should be an empty array.
-- Provide up to 3 comments per file.
-- Only provide one comment or suggestion on a similar topic.
-- Comments and suggestions only provide for performance, maintenance, and best practices.
-- Write the comment in GitHub Markdown format.
-- Use the given description only for the overall context and only comment the code.
-- Please explain the reason for the comments and suggestion in as much detail as possible so that the requestor can learn deeply.
-- Please check carefully if the line number of the comments is correct.
-- If you have a similar comments and suggestions, please provide it only once.
-- Comments are provided in Korean.
-- IMPORTANT: NEVER suggest adding comments to the code.
 
-Review the following code diff in the file "${file.to}" and take the pull request title and description into account when writing the response.
+  const updatedPrompt = basePrompt.replace(/#\{(.*?)\}/g, '${$1}');
 
-Pull request title: ${prDetails.title}
-Pull request description:
-
-Review the following code diff in the file "${file.to}" and take the pull request title and description into account when writing the response.
+  console.log(updatedPrompt);
   
-Pull request title: ${prDetails.title}
-Pull request description:
-
----
-${prDetails.description}
----
-
-Git diff to review:
-
-\`\`\`diff
-${chunk.content}
-${chunk.changes
-  // @ts-expect-error - ln and ln2 exists where needed
-  .map((c) => `${c.ln ? c.ln : c.ln2} ${c.content}`)
-  .join("\n")}
-\`\`\`
-`;
-
-  console.log(prompt);
-  return prompt;
+  return updatedPrompt;
 }
 
 async function getAIResponse(prompt: string, model: string): Promise<Array<{
