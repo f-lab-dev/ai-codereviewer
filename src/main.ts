@@ -74,6 +74,7 @@ async function analyzeCode(
     if (file.to === "/dev/null") continue; // Ignore deleted files
     for (const chunk of file.chunks) {
       const prompt = createPrompt(flabApiResponse.prompt, file, chunk, prDetails);
+      console.log(prompt);
       const aiResponse = await getAIResponse(prompt, flabApiResponse.model);
       if (aiResponse) {
         const newComments = createComment(file, chunk, aiResponse);
@@ -227,8 +228,9 @@ async function main() {
   });
 
   for (let i = 0; i < MAX_RETRY_COUNT; i++) {
+    let comments: Array<{ body: string; path: string; line: number }> = [];
     try {
-      const comments = await analyzeCode(filteredDiff, prDetails, flabApiResponse);
+      comments = await analyzeCode(filteredDiff, prDetails, flabApiResponse);
       if (comments.length > 0) {
         await createReviewComment(
           prDetails.owner,
@@ -240,6 +242,7 @@ async function main() {
       return;
     } catch (error) {
       if (i === MAX_RETRY_COUNT - 1) {
+        console.log(comments);
         throw error;
       }
     }
