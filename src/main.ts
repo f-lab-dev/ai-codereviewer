@@ -89,12 +89,22 @@ async function analyzeCode(
 
 function createPrompt(basePrompt: string, file: File, chunk: Chunk, prDetails: PRDetails): string {
 
-  const interpolatedBase = basePrompt.replace(/#\{(.*?)\}/g, '${$1}');
-  console.log(interpolatedBase, "@@해쉬를 빼고 인터폴레이션 된 베이스 프롬프트")
+  return basePrompt.replace(/#\{(.*?)\}/g, (match, p1) => {
+    const parts = p1.split('.');
+    let current: any = { file, chunk, prDetails };
 
-  const interpolate = new Function('file', 'chunk', 'prDetails', `return \`${interpolatedBase}\`;`);
+    for (const part of parts) {
+      if (current && typeof current === 'object' && part in current) {
+        current = current[part];
+      } else {
+        return match;
+      }
+    }
 
-  return interpolate(file, chunk, prDetails);
+    console.log(current, '@@변환된 값')
+
+    return current;
+  });
 }
 
 async function getAIResponse(prompt: string, model: string): Promise<Array<{
