@@ -6,7 +6,6 @@ import parseDiff, { Chunk, File } from "parse-diff";
 import minimatch from "minimatch";
 import { createInstance } from "./api/axiosConfig";
 import { getPrompt } from "./api/getPrompt";
-import { replaceAllHashVariables } from "./utils/replaceHash";
 
 const GITHUB_TOKEN: string = core.getInput("GITHUB_TOKEN");
 const OPENAI_API_KEY: string = core.getInput("OPENAI_API_KEY");
@@ -75,7 +74,7 @@ async function analyzeCode(
     if (file.to === "/dev/null") continue; // Ignore deleted files
     for (const chunk of file.chunks) {
       const prompt = createPrompt(flabApiResponse.prompt, file, chunk, prDetails);
-      console.log(prompt);
+      console.log(prompt, '@prompt');
       const aiResponse = await getAIResponse(prompt, flabApiResponse.model);
       if (aiResponse) {
         const newComments = createComment(file, chunk, aiResponse);
@@ -90,10 +89,11 @@ async function analyzeCode(
 
 function createPrompt(basePrompt: string, file: File, chunk: Chunk, prDetails: PRDetails): string {
 
-  const updatedPrompt = replaceAllHashVariables(basePrompt);
-  console.log(updatedPrompt, '@@updated')
+  const interpolatedBase = basePrompt.replace(/#\{(.*?)\}/g, '${$1}');
 
-  return updatedPrompt;
+  const interpolate = new Function('file', 'chunk', 'prDetails', `return \`${interpolatedBase}\`;`);
+
+  return interpolate(file, chunk, prDetails);
 }
 
 async function getAIResponse(prompt: string, model: string): Promise<Array<{
