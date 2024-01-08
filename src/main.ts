@@ -212,6 +212,8 @@ async function main() {
 
   const {prompt, model} = await getPrompt(apiClient);
 
+  console.log(prompt, "@서버에서 내려준 프롬프트");
+
   const flabApiResponse = {
     prompt,
     model
