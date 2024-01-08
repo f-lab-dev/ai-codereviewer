@@ -6,6 +6,7 @@ import parseDiff, { Chunk, File } from "parse-diff";
 import minimatch from "minimatch";
 import { createInstance } from "./api/axiosConfig";
 import { getPrompt } from "./api/getPrompt";
+import { replaceAllHashVariables } from "./utils/replaceHash";
 
 const GITHUB_TOKEN: string = core.getInput("GITHUB_TOKEN");
 const OPENAI_API_KEY: string = core.getInput("OPENAI_API_KEY");
@@ -89,7 +90,8 @@ async function analyzeCode(
 
 function createPrompt(basePrompt: string, file: File, chunk: Chunk, prDetails: PRDetails): string {
 
-  const updatedPrompt = basePrompt.replace(/#\{(.*?)\}/g, '${$1}');
+  const updatedPrompt = replaceAllHashVariables(basePrompt);
+  console.log(updatedPrompt, '@@updated')
 
   return updatedPrompt;
 }
