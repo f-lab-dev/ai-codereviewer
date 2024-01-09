@@ -101,6 +101,13 @@ function createPrompt(basePrompt: string, file: File, chunk: Chunk, prDetails: P
       }
     }
 
+    if (p1 === 'chunk.changes' && Array.isArray(current)) {
+      return current
+          .map(c => `${c.ln ? c.ln : c.ln2} ${c.content}`)
+          .join("\n");
+    }
+
+
     console.log(current, '@@변환된 값')
 
     return current;
