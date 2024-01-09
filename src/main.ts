@@ -74,7 +74,6 @@ async function analyzeCode(
     if (file.to === "/dev/null") continue; // Ignore deleted files
     for (const chunk of file.chunks) {
       const prompt = createPrompt(flabApiResponse.prompt, file, chunk, prDetails);
-      console.log(prompt, '@prompt');
       const aiResponse = await getAIResponse(prompt, flabApiResponse.model);
       if (aiResponse) {
         const newComments = createComment(file, chunk, aiResponse);
@@ -106,9 +105,6 @@ function createPrompt(basePrompt: string, file: File, chunk: Chunk, prDetails: P
           .map(c => `${c.ln ? c.ln : c.ln2} ${c.content}`)
           .join("\n");
     }
-
-
-    console.log(current, '@@변환된 값')
 
     return current;
   });
@@ -228,8 +224,6 @@ async function main() {
      })
 
   const {prompt, model} = await getPrompt(apiClient);
-
-  console.log(prompt, "@서버에서 내려준 프롬프트");
 
   const flabApiResponse = {
     prompt,
