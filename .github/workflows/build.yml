@@ -1,6 +1,14 @@
 name: Build Workflow
 
-on: [push, pull_request]
+on:
+  pull_request:
+    branches:
+      - '**'
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
 
 env:
   DEFAULT_NODE_VERSION: '16'
