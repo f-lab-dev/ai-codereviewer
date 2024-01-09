@@ -69,7 +69,6 @@ async function analyzeCode(
     if (file.to === "/dev/null") continue; // Ignore deleted files
     for (const chunk of file.chunks) {
       const prompt = createPrompt(file, chunk, prDetails);
-      console.log(prompt);
       const aiResponse = await getAIResponse(prompt);
       if (aiResponse) {
         const newComments = createComment(file, chunk, aiResponse);
@@ -125,7 +124,6 @@ ${chunk.changes
 \`\`\`
 `;
 
-  console.log(prompt);
   return prompt;
 }
 
