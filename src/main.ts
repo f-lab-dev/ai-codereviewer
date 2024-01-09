@@ -244,9 +244,8 @@ async function main() {
   });
 
   for (let i = 0; i < MAX_RETRY_COUNT; i++) {
-    let comments: Array<{ body: string; path: string; line: number }> = [];
     try {
-      comments = await analyzeCode(filteredDiff, prDetails, flabApiResponse);
+      const comments = await analyzeCode(filteredDiff, prDetails, flabApiResponse);
       if (comments.length > 0) {
         await createReviewComment(
           prDetails.owner,
@@ -258,7 +257,6 @@ async function main() {
       return;
     } catch (error) {
       if (i === MAX_RETRY_COUNT - 1) {
-        console.log(comments);
         throw error;
       }
     }
