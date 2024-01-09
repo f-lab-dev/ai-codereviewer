@@ -80,7 +80,6 @@ async function analyzeCode(
   }
   return comments;
 }
-
 function createPrompt(file: File, chunk: Chunk, prDetails: PRDetails): string {
   const prompt = `Your task is to review pull requests. Instructions:
 - Provide the response in following JSON format:  {"reviews": [{"lineNumber":  <line_number>, "reviewComment": "<review comment>"}]}
@@ -125,7 +124,6 @@ ${chunk.changes
 \`\`\`
 `;
 
-  console.log(prompt);
   return prompt;
 }
 
