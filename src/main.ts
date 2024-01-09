@@ -4,6 +4,8 @@ import OpenAI from "openai";
 import { Octokit } from "@octokit/rest";
 import parseDiff, { Chunk, File } from "parse-diff";
 import minimatch from "minimatch";
+import { createInstance } from "./api/axiosConfig";
+import { getPrompt } from "./api/getPrompt";
 
 const GITHUB_TOKEN: string = core.getInput("GITHUB_TOKEN");
 const OPENAI_API_KEY: string = core.getInput("OPENAI_API_KEY");
@@ -240,20 +242,15 @@ async function main() {
     return;
   }
 
-  /*
-    TODO : 여기서 백엔드 호출해서 데이터 가져오기
-
-    [요청 헤더에 FLAB_SECRET_KEY를 같이 보내기]
-
-    API : GET https://api.f-lab.kr/f-lab/prompts/github-code-review
-    헤더키 : X-FLAB-INTEGRATION-SECRET-KEY
-    헤더 값 : FLAB_SECRET_KEY
-
-   */
+  const apiClient = createInstance({
+      customKey: FLAB_SECRET_KEY
+     })
+   
+  const {prompt, model} = await getPrompt(apiClient);
 
   const flabApiResponse = {
-    prompt: "prompt",
-    model: "gpt-4"
+    prompt,
+    model
   }
 
   const parsedDiff = parseDiff(diff);
