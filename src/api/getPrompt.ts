@@ -18,13 +18,12 @@ export const getPrompt = async (apiClient: AxiosInstance): Promise<Response> => 
     try {
         const response = await apiClient.get<Promise<AxiosResponse<ApiResponse>>, Promise<AxiosResponse<ApiResponse>>>(END_POINT_URL);
         if(!response.data.data) throw new Error('data does not exist')
-        
+
         const {data} = response.data
         return data;
       }
 
       catch (error) {
-        console.error(error);
         return Promise.reject(error)
       }
 }
