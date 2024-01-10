@@ -11,6 +11,7 @@ export const createInstance = ({ customKey} :CreateInstanceParams)=> {
     return axios.create({
         baseURL: BASE_URL,
         headers: {
+            'Content-Type': 'application/json',
             [HEADER_KEY]: customKey
         }
     })
