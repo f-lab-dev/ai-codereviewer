@@ -74,6 +74,7 @@ async function analyzeCode(
     if (file.to === "/dev/null") continue; // Ignore deleted files
     for (const chunk of file.chunks) {
       const prompt = createPrompt(flabApiResponse.prompt, file, chunk, prDetails);
+      console.log('@@변환된 prompt',prompt)
       const aiResponse = await getAIResponse(prompt, flabApiResponse.model);
       if (aiResponse) {
         const newComments = createComment(file, chunk, aiResponse);
@@ -224,6 +225,9 @@ async function main() {
      })
 
   const {prompt, model} = await getPrompt(apiClient);
+
+  console.log('@@서버 응답 프롬프트', prompt)
+  console.log('@@서버 응답 모델', model)
 
   const flabApiResponse = {
     prompt,
