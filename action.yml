@@ -4,7 +4,7 @@ inputs:
   GITHUB_TOKEN:
     description: "GitHub token to interact with the repository."
     required: true
-  FLAB_INTEGRATION_KEY:
+  FLAB_SECRET_KEY:
     description: "FLAB_SECRET_KEY"
     required: true
   OPENAI_API_KEY:
