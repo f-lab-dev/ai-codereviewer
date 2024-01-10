@@ -4,11 +4,12 @@ import OpenAI from "openai";
 import { Octokit } from "@octokit/rest";
 import parseDiff, { Chunk, File } from "parse-diff";
 import minimatch from "minimatch";
+import { createInstance } from "./api/axiosConfig";
+import { getPrompt } from "./api/getPrompt";
 
 const GITHUB_TOKEN: string = core.getInput("GITHUB_TOKEN");
 const OPENAI_API_KEY: string = core.getInput("OPENAI_API_KEY");
-const OPENAI_API_MODEL: string = 'gpt-4'; // TODO : 서버에서 모델 받아오기
-const FLAB_SECRET_KEY: string = core.getInput("FLAB_SECRET_KEY");
+const FLAB_SECRET_KEY: string = core.getInput("F_LAB_INTEGRATION_KEY");
 
 const MAX_RETRY_COUNT = 3;
 
@@ -61,15 +62,19 @@ async function getDiff(
 
 async function analyzeCode(
   parsedDiff: File[],
-  prDetails: PRDetails
+  prDetails: PRDetails,
+  flabApiResponse: {
+    prompt: string;
+    model: string;
+  }
 ): Promise<Array<{ body: string; path: string; line: number }>> {
   const comments: Array<{ body: string; path: string; line: number }> = [];
 
   for (const file of parsedDiff) {
     if (file.to === "/dev/null") continue; // Ignore deleted files
     for (const chunk of file.chunks) {
-      const prompt = createPrompt(file, chunk, prDetails);
-      const aiResponse = await getAIResponse(prompt);
+      const prompt = createPrompt(flabApiResponse.prompt, file, chunk, prDetails);
+      const aiResponse = await getAIResponse(prompt, flabApiResponse.model);
       if (aiResponse) {
         const newComments = createComment(file, chunk, aiResponse);
         if (newComments) {
@@ -80,59 +85,37 @@ async function analyzeCode(
   }
   return comments;
 }
-function createPrompt(file: File, chunk: Chunk, prDetails: PRDetails): string {
-  const prompt = `Your task is to review pull requests. Instructions:
-- Provide the response in following JSON format:  {"reviews": [{"lineNumber":  <line_number>, "reviewComment": "<review comment>"}]}
-- Do not give positive comments or compliments.
-- Do not give naming convention comments or compliments.
-- Provide comments and suggestions ONLY if there is something to improve, otherwise "reviews" should be an empty array.
-- Provide up to 3 comments per file.
-- Only provide one comment or suggestion on a similar topic.
-- Comments and suggestions only provide for performance, maintenance, and best practices.
-- Write the comment in GitHub Markdown format.
-- Use the given description only for the overall context and only comment the code.
-- Please explain the reason for the comments and suggestion in as much detail as possible so that the requestor can learn deeply.
-- Please check carefully if the line number of the comments is correct.
-- If you have a similar comments and suggestions, please provide it only once.
-- Comments are provided in Korean.
-- IMPORTANT: NEVER suggest adding comments to the code.
 
-Review the following code diff in the file "${file.to}" and take the pull request title and description into account when writing the response.
-  
-Pull request title: ${prDetails.title}
-Pull request description:
+function createPrompt(basePrompt: string, file: File, chunk: Chunk, prDetails: PRDetails): string {
 
-Review the following code diff in the file "${
-    file.to
-  }" and take the pull request title and description into account when writing the response.
-  
-Pull request title: ${prDetails.title}
-Pull request description:
+  return basePrompt.replace(/#\{(.*?)\}/g, (match, p1) => {
+    const parts = p1.split('.');
+    let current: any = { file, chunk, prDetails };
 
----
-${prDetails.description}
----
+    for (const part of parts) {
+      if (current && typeof current === 'object' && part in current) {
+        current = current[part];
+      } else {
+        return match;
+      }
+    }
 
-Git diff to review:
+    if (p1 === 'chunk.changes' && Array.isArray(current)) {
+      return current
+          .map(c => `${c.ln ? c.ln : c.ln2} ${c.content}`)
+          .join("\n");
+    }
 
-\`\`\`diff
-${chunk.content}
-${chunk.changes
-  // @ts-expect-error - ln and ln2 exists where needed
-  .map((c) => `${c.ln ? c.ln : c.ln2} ${c.content}`)
-  .join("\n")}
-\`\`\`
-`;
-
-  return prompt;
+    return current;
+  });
 }
 
-async function getAIResponse(prompt: string): Promise<Array<{
+async function getAIResponse(prompt: string, model: string): Promise<Array<{
   lineNumber: string;
   reviewComment: string;
 }> | null> {
   const queryConfig = {
-    model: OPENAI_API_MODEL,
+    model: model,
     temperature: 0.2,
     max_tokens: 700,
     top_p: 1,
@@ -144,7 +127,7 @@ async function getAIResponse(prompt: string): Promise<Array<{
     const response = await openai.chat.completions.create({
       ...queryConfig,
       // return JSON if the model supports it:
-      ...(OPENAI_API_MODEL === "gpt-4-1106-preview"
+      ...(model === "gpt-4-1106-preview"
         ? { response_format: { type: "json_object" } }
         : {}),
       messages: [
@@ -236,6 +219,17 @@ async function main() {
     return;
   }
 
+  const apiClient = createInstance({
+      customKey: FLAB_SECRET_KEY
+     })
+
+  const {prompt, model} = await getPrompt(apiClient);
+
+  const flabApiResponse = {
+    prompt,
+    model
+  }
+
   const parsedDiff = parseDiff(diff);
 
   const excludePatterns = core
@@ -251,7 +245,7 @@ async function main() {
 
   for (let i = 0; i < MAX_RETRY_COUNT; i++) {
     try {
-      const comments = await analyzeCode(filteredDiff, prDetails);
+      const comments = await analyzeCode(filteredDiff, prDetails, flabApiResponse);
       if (comments.length > 0) {
         await createReviewComment(
           prDetails.owner,

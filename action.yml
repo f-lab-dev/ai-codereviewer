@@ -4,6 +4,9 @@ inputs:
   GITHUB_TOKEN:
     description: "GitHub token to interact with the repository."
     required: true
+  F_LAB_INTEGRATION_KEY:
+    description: "FLAB_SECRET_KEY"
+    required: true
   OPENAI_API_KEY:
     description: "OpenAI API key for GPT."
     required: true
