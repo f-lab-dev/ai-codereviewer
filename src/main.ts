@@ -9,7 +9,7 @@ import { getPrompt } from "./api/getPrompt";
 
 const GITHUB_TOKEN: string = core.getInput("GITHUB_TOKEN");
 const OPENAI_API_KEY: string = core.getInput("OPENAI_API_KEY");
-const FLAB_SECRET_KEY: string = core.getInput("FLAB_INTEGRATION_KEY");
+const FLAB_SECRET_KEY: string = core.getInput("FLAB_SECRET_KEY");
 
 const MAX_RETRY_COUNT = 3;
 
