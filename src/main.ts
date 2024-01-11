@@ -66,14 +66,25 @@ async function analyzeCode(
   flabApiResponse: {
     prompt: string;
     model: string;
-  }
+  },
+  branchName: string,
 ): Promise<Array<{ body: string; path: string; line: number }>> {
   const comments: Array<{ body: string; path: string; line: number }> = [];
 
   for (const file of parsedDiff) {
     if (file.to === "/dev/null") continue; // Ignore deleted files
     for (const chunk of file.chunks) {
-      const prompt = createPrompt(flabApiResponse.prompt, file, chunk, prDetails);
+      const fullFileContent = await octokit.repos.getContent({
+        headers: {
+          accept: "application/vnd.github.raw",
+        },
+        owner: prDetails.owner,
+        repo: prDetails.repo,
+        path: file.to!!,
+        ref: branchName,
+      });
+
+      const prompt = createPrompt(flabApiResponse.prompt, file, chunk, prDetails, String(fullFileContent.data));
       const aiResponse = await getAIResponse(prompt, flabApiResponse.model);
       if (aiResponse) {
         const newComments = createComment(file, chunk, aiResponse);
@@ -86,11 +97,11 @@ async function analyzeCode(
   return comments;
 }
 
-function createPrompt(basePrompt: string, file: File, chunk: Chunk, prDetails: PRDetails): string {
+function createPrompt(basePrompt: string, file: File, chunk: Chunk, prDetails: PRDetails, fullFileContent: string): string {
 
   return basePrompt.replace(/#\{(.*?)\}/g, (match, p1) => {
     const parts = p1.split('.');
-    let current: any = { file, chunk, prDetails };
+    let current: any = { file, chunk, prDetails, fullFileContent };
 
     for (const part of parts) {
       if (current && typeof current === 'object' && part in current) {
@@ -187,6 +198,7 @@ async function main() {
   const eventData = JSON.parse(
     readFileSync(process.env.GITHUB_EVENT_PATH ?? "", "utf8")
   );
+  const branchName = eventData.pull_request.head.ref;
 
   if (eventData.action === "opened" || eventData.action === "reopened") {
     diff = await getDiff(
@@ -243,9 +255,19 @@ async function main() {
     );
   });
 
+  if (filteredDiff.length > 10) {
+    await octokit.issues.createComment({
+      owner: prDetails.owner,
+      repo: prDetails.repo,
+      issue_number: prDetails.pull_number,
+      body: '변경된 파일이 10개를 초과하여 AI 코드리뷰가 제공되지 않습니다.\n\nPR의 크기는 작게 유지해주세요.',
+    });
+    return;
+  }
+
   for (let i = 0; i < MAX_RETRY_COUNT; i++) {
     try {
-      const comments = await analyzeCode(filteredDiff, prDetails, flabApiResponse);
+      const comments = await analyzeCode(filteredDiff, prDetails, flabApiResponse, branchName);
       if (comments.length > 0) {
         await createReviewComment(
           prDetails.owner,
