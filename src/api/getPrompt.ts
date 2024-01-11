@@ -1,6 +1,6 @@
 import { AxiosInstance, AxiosResponse } from "axios"
 
-const END_POINT_URL = '/open-api/prompts/github-code-review'
+const END_POINT_URL = '/open-api/prompts/github-code-review-v2'
 
 
 interface ApiResponse {

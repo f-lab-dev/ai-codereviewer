@@ -11,7 +11,7 @@ const GITHUB_TOKEN: string = core.getInput("GITHUB_TOKEN");
 const OPENAI_API_KEY: string = core.getInput("OPENAI_API_KEY");
 const FLAB_SECRET_KEY: string = core.getInput("FLAB_SECRET_KEY");
 
-const MAX_RETRY_COUNT = 3;
+const MAX_RETRY_COUNT = 1;
 
 const octokit = new Octokit({ auth: GITHUB_TOKEN });
 
@@ -69,32 +69,55 @@ async function analyzeCode(
   },
   branchName: string,
 ): Promise<Array<{ body: string; path: string; line: number }>> {
-  const comments: Array<{ body: string; path: string; line: number }> = [];
+  const filteredDiff = parsedDiff.filter((file) => {
+    return file.to !== "/dev/null";
+  });
 
-  for (const file of parsedDiff) {
-    if (file.to === "/dev/null") continue; // Ignore deleted files
-    for (const chunk of file.chunks) {
-      const fullFileContent = await octokit.repos.getContent({
-        headers: {
-          accept: "application/vnd.github.raw",
-        },
-        owner: prDetails.owner,
-        repo: prDetails.repo,
-        path: file.to!!,
-        ref: branchName,
-      });
+  const fullContents: Array<string> = [];
+  const diffs: Array<string> = [];
+  for (const file of filteredDiff) {
+    const fullFileContent = await octokit.repos.getContent({
+      headers: {
+        accept: "application/vnd.github.raw",
+      },
+      owner: prDetails.owner,
+      repo: prDetails.repo,
+      path: file.to!!,
+      ref: branchName,
+    });
+    fullContents.push(`filePath : ${file.to}\n` + '```\n' + String(fullFileContent.data) + '\n```');
 
-      const prompt = createPrompt(flabApiResponse.prompt, file, chunk, prDetails, String(fullFileContent.data));
-      const aiResponse = await getAIResponse(prompt, flabApiResponse.model);
-      if (aiResponse) {
-        const newComments = createComment(file, chunk, aiResponse);
-        if (newComments) {
-          comments.push(...newComments);
-        }
-      }
-    }
+    diffs.push(`filePath : ${file.to}\n` +
+      file.chunks.map((chunk) => {
+        return `\`\`\`diff
+${chunk.changes
+          // @ts-expect-error - ln and ln2 exists where needed
+          .map((c) => `${c.ln ? c.ln : c.ln2} ${c.content}`)
+          .join("\n")}
+\`\`\`
+`;
+      }).join('\n')
+    )
   }
-  return comments;
+  const fullContent = fullContents.join('\n\n');
+  const diff = diffs.join('\n\n');
+
+  const prompt = flabApiResponse.prompt
+    .replace('#{prTitle}', prDetails.title)
+    .replace('#{prDescription}', prDetails.description)
+    .replace('#{fullContent}', fullContent)
+    .replace('#{diff}', diff);
+
+  console.log(prompt);
+  console.log('------------------------');
+
+  const aiResponse = await getAIResponse(prompt, flabApiResponse.model);
+
+  if (!aiResponse) {
+    throw new Error("AI response is null");
+  }
+
+  return aiResponse;
 }
 
 function createPrompt(basePrompt: string, file: File, chunk: Chunk, prDetails: PRDetails, fullFileContent: string): string {
@@ -121,14 +144,13 @@ function createPrompt(basePrompt: string, file: File, chunk: Chunk, prDetails: P
   });
 }
 
-async function getAIResponse(prompt: string, model: string): Promise<Array<{
-  lineNumber: string;
-  reviewComment: string;
-}> | null> {
+async function getAIResponse(
+  prompt: string,
+  model: string
+): Promise<Array<{ body: string; path: string; line: number }> | null> {
   const queryConfig = {
     model: model,
     temperature: 0.2,
-    max_tokens: 700,
     top_p: 1,
     frequency_penalty: 0,
     presence_penalty: 0,
@@ -150,6 +172,7 @@ async function getAIResponse(prompt: string, model: string): Promise<Array<{
     });
 
     const res = response.choices[0].message?.content?.trim() || "{}";
+    console.log(res);
     return JSON.parse(res).reviews;
   } catch (error) {
     console.error("Error:", error);
@@ -255,15 +278,15 @@ async function main() {
     );
   });
 
-  if (filteredDiff.length > 10) {
-    await octokit.issues.createComment({
-      owner: prDetails.owner,
-      repo: prDetails.repo,
-      issue_number: prDetails.pull_number,
-      body: '변경된 파일이 10개를 초과하여 AI 코드리뷰가 제공되지 않습니다.\n\nPR의 크기는 작게 유지해주세요.',
-    });
-    return;
-  }
+  // if (filteredDiff.length > 10) {
+  //   await octokit.issues.createComment({
+  //     owner: prDetails.owner,
+  //     repo: prDetails.repo,
+  //     issue_number: prDetails.pull_number,
+  //     body: '변경된 파일이 10개를 초과하여 AI 코드리뷰가 제공되지 않습니다.\n\nPR의 크기는 작게 유지해주세요.',
+  //   });
+  //   return;
+  // }
 
   for (let i = 0; i < MAX_RETRY_COUNT; i++) {
     try {
@@ -283,6 +306,14 @@ async function main() {
       }
     }
   }
+}
+
+function escapeRegExp(string: string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+}
+
+function replaceAll(str: string, find: string, replace: string) {
+  return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
 }
 
 main().catch((error) => {
