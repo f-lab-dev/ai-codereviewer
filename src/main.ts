@@ -108,9 +108,6 @@ ${chunk.changes
     .replace('#{fullContent}', fullContent)
     .replace('#{diff}', diff);
 
-  console.log(prompt);
-  console.log('------------------------');
-
   const aiResponse = await getAIResponse(prompt, flabApiResponse.model);
 
   if (!aiResponse) {
@@ -172,7 +169,6 @@ async function getAIResponse(
     });
 
     const res = response.choices[0].message?.content?.trim() || "{}";
-    console.log(res);
     return JSON.parse(res).reviews;
   } catch (error) {
     console.error("Error:", error);
