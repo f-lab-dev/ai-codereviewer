@@ -149,8 +149,8 @@ async function getAIResponse(
     model: model,
     temperature: 0.2,
     top_p: 1,
-    frequency_penalty: 0,
-    presence_penalty: 0,
+    frequency_penalty: 0.3,
+    presence_penalty: 0.3,
   };
 
   try {
